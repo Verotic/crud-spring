@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .card {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    .card-header {
+      background-color: #007bff;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .card-header-title {
+      color: #fff;
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    .zoom {
+      padding: 5px;
+      transition: transform 0.2s;
+      width: 40px;
+      height: 40px;
+      margin: 0 auto;
+    }
+
+    .zoom:hover {
+      transform: scale(1.5);
+    }
+
+    .table {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sortable {
+      cursor: pointer;
+      position: relative;
+    }
+
+    .sort-arrow {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+    }
+
+    .sort-arrow::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      right: 0;
+      border: solid transparent;
+      border-width: 6px 6px 0 6px;
+      border-top-color: #000;
+    }
+
+    .sort-arrow.asc::before {
+      border-top-color: #fff;
+    }
+
+    .sort-arrow.desc {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .sort-arrow.desc::before {
+      border-top-color: #fff;
+    }
+  </style>
+  <title>Alunos</title>
+</head>
+
+<body>
+  <section class="section pt-5">
+    <div class="container">
+      <div class="alert alert-success" style="display: none;"></div>
+      <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            <i class="fas fa-user-graduate"></i> Alunos
+          </p>
+        </header>
+        <div class="card-body">
+          <div class="content">
+            <div class="input-group mb-3">
+              <input class="form-control" type="text" id="search" placeholder="Procurar aluno"
+                aria-label="Recipient's username" aria-describedby="basic-addon2">
+            </div>
+            <div class="container mt-4">
+              <b>
+                <p>Total de registos: <span th:text="${count}"></span></p>
+              </b>
+            </div>
+            <div class="mb-3">
+              <button class="btn btn-secondary" id="exportBtn"><i class="fas fa-download"></i> Exportar</button>
+            </div>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col" class="sortable" data-column="id">Id <span class="sort-arrow"></span></th>
+                  <th scope="col">Nome</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Nacionalidade</th>
+                  <th scope="col">Foto</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="aluno : ${listAlunos}">
+                  <td th:text="${aluno.id}"></td>
+                  <td th:text="${aluno.nome}"></td>
+                  <td th:text="${aluno.email}"></td>
+                  <td th:text="${aluno.nacionalidade}"></td>
+                  <td><img th:src="@{${aluno.getfotosPath}}" class="zoom" alt="Sem foto" /></td>
+                  <td>
+                    <a th:href="@{'/edita/' + ${aluno.id.toString()}}" class="btn btn-warning">Editar</a>
+                    <a href="#" class="btn btn-danger" th:onclick="'confirmDelete(' + ${aluno.id} + ');'">Eliminar</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <button class="btn btn-primary float-right" name="btn_new_reg" id="btn_new_reg"
+              onclick="location.href='/novo'">Novo registo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+  <script>
+    $(document).ready(function() {
+      $('#search').on('input', function() {
+        var searchValue = $(this).val();
+        filterTable(searchValue);
+      });
+
+      $('.sortable').on('click', function() {
+        var column = $(this).data('column');
+        var order = $(this).hasClass('asc') ? 'desc' : 'asc';
+
+        $('.sortable').removeClass('asc desc');
+        $(this).addClass(order);
+
+        sortTable(column, order);
+      });
+
+      $('#exportBtn').on('click', function() {
+        exportDataToCSV();
+      });
+    });
+
+    function filterTable(searchValue) {
+      var rows = $('tbody tr');
+      rows.each(function() {
+        var name = $(this).find('td:eq(1)').text();
+        if (name.toLowerCase().includes(searchValue.toLowerCase())) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    }
+
+    function sortTable(column, order) {
+      if (column === 1) return;
+      var table = $('table');
+      var rows = table.find('tbody tr').get();
+
+      rows.sort(function(a, b) {
+        var aValue = $(a).find('td:eq(' + column + ')').text().trim();
+        var bValue = $(b).find('td:eq(' + column + ')').text().trim();
+
+        if (column === 0) {
+          aValue = parseInt(aValue);
+          bValue = parseInt(bValue);
+        }
+
+        if (order === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+
+      $.each(rows, function(index, row) {
+        table.find('tbody').append(row);
+      });
+    }
+
+    function confirmDelete(id) {
+      Swal.fire({
+        title: 'Tem certeza?',
+        text: "Você não será capaz de reverter isto!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sim, eliminar!',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          location.href = '/apaga/' + id;
+          showSuccessMessage();
+        }
+      })
+    }
+
+    function showSuccessMessage() {
+      Swal.fire({
+        title: 'Eliminado!',
+        text: 'Aluno eliminado com sucesso.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+      });
+    }
+
+    function exportDataToCSV() {
+  var csvContent = "data:text/csv;charset=utf-8,";
+  var headers = [];
+  var rows = [];
+
+  $('table thead tr th:not(:last)').each(function() {
+    var header = $(this).text().trim();
+    headers.push(header);
+  });
+
+  $('table tbody tr').each(function() {
+    var row = [];
+    $(this).find('td:not(:last)').each(function() {
+      var cell = $(this).text().trim();
+      row.push(cell);
+    });
+    rows.push(row.join(","));
+  });
+
+  csvContent += headers.join(",") + "\n";
+  csvContent += rows.join("\n");
+
+  var encodedUri = encodeURI(csvContent);
+  var link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "alunos.csv");
+  document.body.appendChild(link);
+  link.click();
+}
+  </script>
+</body>
+
+</html>
