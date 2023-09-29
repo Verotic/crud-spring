@@ -16,12 +16,8 @@ Este projeto é um exemplo simples de um aplicativo CRUD (Create, Read, Update, 
 - `src/main/java/net/aarruda/crud/repository/`: Contém os repositórios do projeto, como [AlunoRepository.java](https://github.com/Verotic/crud-spring/blob/main/Projeto%20CRUD%20(Spring)/src/main/java/net/aarruda/crud/repository/AlunoRepository.java).
 - `src/main/resources/`: Contém recursos como templates e arquivos de configuração, como [application.properties](https://github.com/Verotic/crud-spring/blob/main/Projeto%20CRUD%20(Spring)/src/main/resources/application.properties).
 
-## Como Executar
-### Pré-requisitos
-- Java [versão]
-- Maven [versão]
-
-### Passos para Execução
-1. Clone o repositório para o seu local de trabalho:
-   ```sh
-   git clone https://github.com/Verotic/crud-spring.git
+##Funcionalidades
+Create: Adiciona um novo registro de aluno.
+Read: Lê e lista registros de alunos existentes.
+Update: Atualiza registros de alunos existentes.
+Delete: Remove registros de alunos existentes.
